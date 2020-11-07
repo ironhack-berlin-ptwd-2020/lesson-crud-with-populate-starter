@@ -10,6 +10,7 @@ const Post = require('../models/Post.model');
 
 // localhost:3000/post-create
 router.get('/post-create', (req, res) => {
+
   User.find()
     .then(dbUsers => {
       res.render('posts/create', { dbUsers });
@@ -23,13 +24,32 @@ router.get('/post-create', (req, res) => {
 
 // <form action="/post-create" method="POST">
 
-// ... your code here
+router.post('/post-create', (req, res) => {
+
+  Post.create({ title: req.body.title, content: req.body.content, author: req.body.author }).then((myNewPost) => {
+    console.log("this is the new post that got created: ", myNewPost)
+    User.findByIdAndUpdate(req.body.author, { $push: { posts: myNewPost._id } }).then(() => {
+      res.redirect('/post-create')
+    })
+
+  })
+
+})
 
 // ****************************************************************************************
 // GET route to display all the posts
 // ****************************************************************************************
 
-// ... your code here
+router.get('/posts', (req, res) => {
+
+  Post.find().populate('author')
+    .then(dbPosts => {
+      console.log('Posts from the DB: ', dbPosts);
+
+      res.render('posts/list', { myPosts: dbPosts })
+    })
+    .catch(err => console.log(`Err while getting the posts from the DB: ${err}`));
+});
 
 // ****************************************************************************************
 // GET route for displaying the post details page
